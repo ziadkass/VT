@@ -1,0 +1,17 @@
+/* ElectionCalendar.css */
+
+.react-calendar {
+    width: 100%;
+    border: none;
+    background-color: transparent;
+  }
+  
+  .react-calendar__tile--now {
+    background: #e0f7fa;
+  }
+  
+  .react-calendar__tile--active {
+    background: #00796b;
+    color: white;
+  }
+  

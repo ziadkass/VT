@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['auth-service:5001', 'candidate-service:5002', 'election-service:5003', 'user-service:5004', 'vote-service:5005', 'voter-service:5006']

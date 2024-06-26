@@ -1,0 +1,160 @@
+version: '3.8'
+
+services:
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "5001:5001"
+    environment:
+      - NODE_ENV=production
+    labels:
+      - "prometheus.job=auth-service"
+    env_file:
+      - .env
+    networks:
+      - my_network
+
+  candidate-service:
+    build: ./candidate-service
+    ports:
+      - "5002:5002"
+    environment:
+      - NODE_ENV=production
+    labels:
+      - "prometheus.job=candidate-service"
+    env_file:
+      - .env
+    networks:
+      - my_network
+
+  election-service:
+    build: ./election-service
+    ports:
+      - "5003:5003"
+    environment:
+      - NODE_ENV=production
+    labels:
+      - "prometheus.job=election-service"
+    env_file:
+      - .env
+    networks:
+      - my_network
+
+  user-service:
+    build: ./user-service
+    ports:
+      - "5004:5004"
+    environment:
+      - NODE_ENV=production
+    labels:
+      - "prometheus.job=user-service"
+    env_file:
+      - .env
+    networks:
+      - my_network
+
+  vote-service:
+    build: ./vote-service
+    ports:
+      - "5005:5005"
+    environment:
+      - NODE_ENV=production
+    labels:
+      - "prometheus.job=vote-service"
+    env_file:
+      - .env
+    networks:
+      - my_network
+
+  voter-service:
+    build: ./voter-service
+    ports:
+      - "5006:5006"
+    environment:
+      - NODE_ENV=production
+    labels:
+      - "prometheus.job=voter-service"
+    env_file:
+      - .env
+    networks:
+      - my_network
+
+  frontend:
+    build:
+      context: ../voting-system-frontend
+      dockerfile: Dockerfile
+    ports:
+      - "100:100"
+    environment:
+      - REACT_APP_API_URL=http://localhost:3000
+    networks:
+      - my_network
+
+  nginx-proxy:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./cert.pem:/etc/nginx/certs/cert.pem:ro
+      - ./key.pem:/etc/nginx/certs/key.pem:ro
+    depends_on:
+      - auth-service
+      - candidate-service
+      - election-service
+      - user-service
+      - vote-service
+      - voter-service
+    networks:
+      - my_network
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - my_network
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "4000:4000"
+    networks:
+      - my_network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+    ports:
+      - "9200:9200"
+    networks:
+      - my_network
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.10.1
+    container_name: logstash
+    volumes:
+      - ./logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    ports:
+      - "5000:5000"
+    networks:
+      - my_network
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.10.1
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    networks:
+      - my_network
+
+networks:
+  my_network:
+    driver: bridge
